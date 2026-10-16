@@ -1,0 +1,16 @@
+split_gem/
+results/
+__pycache__/
+*.gem
+*.tif
+*.csv
+*.ipynb
+*.yaml
+.env
+data/
+output/
+cache/
+.claude/
+.pytest_cache/
+.pytest_cache_offline/
+.venv/

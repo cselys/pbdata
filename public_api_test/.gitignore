@@ -1,0 +1,21 @@
+# Python bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment variables
+.env
+
+# Results and logs
+results/
+*.json
+*.jsonl
+
+# IDE specific
+.vscode/
+.idea/
+
+# Distribution
+/dist/
+/build/

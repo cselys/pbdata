@@ -1,0 +1,325 @@
+"""RTH (Regular Trading Hours) data-quality validation test for Public.com API.
+
+Validates market-data freshness, timestamp advancement, bid/ask consistency,
+volume tracking, and polling cadence during Regular Trading Hours (9:30-16:00 ET).
+
+References:
+- Finnhub observations: Mean data age ~19.12s (AAPL), ~15.06s (NVDA) at 5s polling for 300s.
+- This project uses consistent definitions of data age and HTTP latency.
+"""
+
+import sys
+import json
+import math
+import time
+from collections import Counter
+from datetime import datetime, timezone, timedelta
+from zoneinfo import ZoneInfo
+from pathlib import Path
+
+from public_api_test.client import PublicComClient
+from public_api_test.config import RAW_OBSERVATIONS_DIR, SUMMARY_STATS_DIR
+from public_api_test.sessions import session_at, annotate_quote, boundaries
+from public_api_test.tests.test_freshness import monitor, summarize, stats
+
+ET = ZoneInfo("America/New_York")
+
+
+def test_rth_quality(
+    symbols=None,
+    interval_seconds=5,
+    duration_seconds=300,
+    requests_per_minute=60,
+    session="auto",
+    max_age=60,
+    clock_skew_tolerance=0,
+    bars_trading_session_toggle="REGULAR_AND_EXTENDED_HOURS",
+):
+    """Run RTH data-quality validation monitoring.
+
+    Parameters
+    ----------
+    symbols : list[str]
+        Symbols to monitor.
+    interval_seconds : int
+        Polling interval in seconds (default 5).
+    duration_seconds : int
+        Test duration in seconds (default 300 = 5 min baseline; 1800 = 30 min stability).
+    requests_per_minute : int
+        Local request rate cap.
+    session : str
+        Session filter: "auto", "premarket", "regular", "afterhours".
+    max_age : float
+        Data-age threshold in seconds for freshness validation.
+    clock_skew_tolerance : float
+        Tolerance for small future timestamps; never counts them as proven fresh.
+    bars_trading_session_toggle : str
+        Session toggle for bar requests (not used in live quote monitoring).
+
+    Returns
+    -------
+    bool
+        True if the test completed without critical errors.
+    """
+    if symbols is None:
+        symbols = ["AAPL", "NVDA", "MSFT", "TSLA", "SPY"]
+    symbols = [s.upper() for s in symbols]
+
+    print(f"RTH Quality Test: symbols={','.join(symbols)}, interval={interval_seconds}s, duration={duration_seconds}s")
+    print(f"RTH window: 9:30-16:00 ET, requests/min={requests_per_minute}, max_age={max_age}s")
+
+    client = PublicComClient(requests_per_minute=requests_per_minute)
+    stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
+    name = f"rth_quality_{'_'.join(symbols)}_{stamp}"
+
+    records, observations = [], []
+    try:
+        setup = client.prepare()
+        for item in setup:
+            records.append(item)
+            print(json.dumps(item))
+
+        if not client.token:
+            print("FAIL: authentication unavailable")
+            return False
+
+        # Run monitoring loop
+        observations, interrupted, elapsed = monitor(
+            client,
+            symbols,
+            interval_seconds,
+            duration_seconds,
+            emit=lambda obs: observations.append(obs),
+            session=session,
+            max_age=max_age,
+            clock_skew_tolerance=clock_skew_tolerance,
+        )
+
+        # ------------------------------------------------------------------
+        # Post-processing: per-symbol and overall quality reports
+        # ------------------------------------------------------------------
+        # Build per-symbol summaries
+        per_symbol = {}
+        for sym in symbols:
+            sym_obs = [o for o in observations if o["symbol"] == sym]
+            if not sym_obs:
+                per_symbol[sym] = {
+                    "observations": 0,
+                    "successful_requests": 0,
+                    "http_success_rate": None,
+                    "data_age_stats": None,
+                    "timestamp_status_counts": {},
+                    "price_change_count": 0,
+                    "frozen_timestamp_count": 0,
+                    "unchanged_full_response_count": 0,
+                    "missed_cycle_count": 0,
+                    "volume_delta_stats": None,
+                    "rate_limit_429_count": 0,
+                }
+                continue
+
+            success_obs = [o for o in sym_obs if o.get("category") == "success"]
+            http_success = sum(200 <= (o.get("http_status") or 0) < 300 for o in sym_obs)
+            age_values = [o["data_age_seconds"] for o in success_obs if o.get("data_age_seconds") is not None and math.isfinite(o["data_age_seconds"])]
+            timestamp_status_counts = Counter(o.get("last_timestamp_status", "unknown") for o in sym_obs)
+            price_changes = sum(o.get("price_changed", False) for o in success_obs)
+
+            # Frozen timestamps: unchanged price AND unchanged provider timestamp across cycles
+            frozen_count = 0
+            prev_price = None
+            prev_ts = None
+            for o in success_obs:
+                price = o.get("price")
+                pt = o.get("provider_timestamp")
+                if price is not None and pt is not None:
+                    if prev_price is not None and price == prev_price and pt == prev_ts:
+                        frozen_count += 1
+                prev_price = price
+                prev_ts = pt
+
+            # Unchanged full response: same price, same bid, same ask across consecutive observations
+            unchanged_full = 0
+            for i in range(1, len(sym_obs)):
+                prev, cur = sym_obs[i - 1], sym_obs[i]
+                if (prev.get("price") == cur.get("price") and
+                    prev.get("bid") == cur.get("bid") and
+                    prev.get("ask") == cur.get("ask") and
+                    prev.get("bid_size") == cur.get("bid_size") and
+                    prev.get("ask_size") == cur.get("ask_size")):
+                    unchanged_full += 1
+
+            # Volume delta analysis
+            volume_deltas = []
+            for i in range(1, len(sym_obs)):
+                prev_vol = sym_obs[i - 1].get("volume")
+                cur_vol = sym_obs[i].get("volume")
+                if prev_vol is not None and cur_vol is not None and math.isfinite(prev_vol) and math.isfinite(cur_vol):
+                    volume_deltas.append(cur_vol - prev_vol)
+
+            # Rate-limit 429 count
+            rl_429 = sum(1 for o in sym_obs if o.get("http_status") == 429)
+
+            # Format age_mean safely
+            if age_values:
+                age_mean_val = stats(age_values)["mean"]
+                age_mean_str = f"{age_mean_val:.1f}"
+            else:
+                age_mean_str = "N/A"
+
+            per_symbol[sym] = dict(
+                observations=len(sym_obs),
+                successful_requests=len(success_obs),
+                http_success_rate=http_success / len(sym_obs) if sym_obs else None,
+                data_age_stats=stats(age_values) if age_values else None,
+                timestamp_status_counts=dict(timestamp_status_counts),
+                price_change_count=price_changes,
+                frozen_timestamp_count=frozen_count,
+                unchanged_full_response_count=unchanged_full,
+                missed_cycle_count=sum(1 for o in sym_obs if o.get("missed_cycle", False)),
+                volume_delta_stats=stats(volume_deltas) if volume_deltas else None,
+                rate_limit_429_count=rl_429,
+            )
+
+        # Overall summary
+        all_success = [o for o in observations if o.get("category") == "success"]
+        all_age_values = [o["data_age_seconds"] for o in all_success if o.get("data_age_seconds") is not None and math.isfinite(o["data_age_seconds"])]
+        all_ts_status = Counter(o.get("last_timestamp_status", "unknown") for o in observations)
+        all_price_changes = sum(o.get("price_changed", False) for o in all_success)
+        all_frozen = sum(1 for o in all_success if o.get("frozen_timestamp", False))
+        all_unchanged_full = sum(1 for i in range(1, len(all_success))
+                                  if all_success[i - 1].get("price") == all_success[i].get("price") and
+                                     all_success[i - 1].get("bid") == all_success[i].get("bid") and
+                                     all_success[i - 1].get("ask") == all_success[i].get("ask"))
+
+        # Volume deltas across all symbols
+        all_vol_deltas = []
+        for o in all_success:
+            vd = o.get("volume_delta")
+            if vd is not None and math.isfinite(vd):
+                all_vol_deltas.append(vd)
+
+        # Format overall stats safely
+        if all_age_values:
+            ad_stats = stats(all_age_values)
+            ad_mean = ad_stats["mean"]
+            ad_p95 = ad_stats["p95"]
+        else:
+            ad_mean = ad_p95 = "unverified"
+
+        vol_delta_stats_val = stats(all_vol_deltas) if all_vol_deltas else None
+        vol_p95 = f"{vol_delta_stats_val['p95']:.1f}" if vol_delta_stats_val else "unverified"
+
+        overall = dict(
+            duration_seconds=elapsed,
+            total_observations=len(observations),
+            total_successful=len(all_success),
+            total_requests=len(observations),
+            http_success_rate=len(all_success) / len(observations) if observations else None,
+            data_age_stats=stats(all_age_values) if all_age_values else None,
+            timestamp_status_counts=dict(all_ts_status),
+            price_change_count=all_price_changes,
+            frozen_timestamp_count=all_frozen,
+            unchanged_full_response_count=all_unchanged_full,
+            rate_limit_429_count=sum(1 for o in observations if o.get("http_status") == 429),
+            per_symbol=per_symbol,
+            clock_skew_tolerance_seconds=clock_skew_tolerance,
+            max_age_seconds=max_age,
+            session_filter=session,
+        )
+
+        # Save raw observations JSONL
+        raw_path = RAW_OBSERVATIONS_DIR / f"{name}.jsonl"
+        with open(raw_path, "w") as f:
+            for o in observations:
+                f.write(json.dumps(o) + "\n")
+        print(f"Raw observations saved to: {raw_path}")
+
+        # Save summary JSON
+        summary_path = SUMMARY_STATS_DIR / f"{name}.json"
+        with open(summary_path, "w") as f:
+            json.dump(overall, f, indent=2, default=str)
+        print(f"Summary statistics saved to: {summary_path}")
+
+        # Print human-readable summary
+        print("\n" + "=" * 60)
+        print("RTH Quality Summary")
+        print("=" * 60)
+        print(f"Duration: {elapsed:.1f}s ({duration_seconds}s requested)")
+        print(f"Total observations: {len(observations)}")
+        print(f"Successful requests: {len(all_success)}")
+        if all_age_values:
+            print(f"Data age - mean: {ad_mean:.1f}s, p95: {ad_p95:.1f}s")
+        print(f"Timestamp status distribution: {dict(all_ts_status)}")
+        print(f"Price changes observed: {all_price_changes}")
+        print(f"Frozen timestamps (unchanged price+TS): {all_frozen}")
+        print(f"Unchanged full responses: {all_unchanged_full}")
+        print(f"Rate-limit 429 responses: {sum(1 for o in observations if o.get('http_status') == 429)}")
+        print("\nPer-symbol details:")
+        for sym, pd in per_symbol.items():
+            dvs = ""
+            if pd["volume_delta_stats"]:
+                dvs = f", vol_p95_delta={pd['volume_delta_stats']['p95']:.1f}"
+            age_str = f"{pd['data_age_stats']['mean']:.1f}" if pd['data_age_stats'] else 'N/A'
+            print(f"  {sym}: obs={pd['observations']}, success={pd['successful_requests']}, "
+                  f"age_mean={age_str}, 429={pd['rate_limit_429_count']}{dvs}")
+
+        # Suitability classification
+        print("\nSuitability Classification:")
+        print(f"  - Data age mean={ad_mean}s, p95={ad_p95}s")
+        print(f"  - Frozen timestamps: {all_frozen} ({100*all_frozen/len(all_success) if all_success else 0:.1f}%)")
+        print(f"  - Unchanged full responses: {all_unchanged_full} ({100*all_unchanged_full/len(all_success) if all_success else 0:.1f}%)")
+
+        # Critical issues that question suitability
+        critical_issues = []
+        if all_age_values and stats(all_age_values).get("mean", 0) > max_age * 2:
+            critical_issues.append(f"mean data age ({stats(all_age_values)['mean']:.1f}s) exceeds 2x threshold ({max_age}s)")
+        if all_ts_status.get("future_timestamp", 0) > 0:
+            critical_issues.append(f"future timestamps detected ({all_ts_status['future_timestamp']})")
+        if all_frozen > len(all_success) * 0.3:
+            critical_issues.append(f"high frozen-timestamp rate ({all_frozen}/{len(all_success)})")
+        if critical_issues:
+            print("  Critical issues:")
+            for issue in critical_issues:
+                print(f"    - {issue}")
+        else:
+            print("  - No critical issues detected")
+
+        success = True
+    except KeyboardInterrupt:
+        print("\nRTH quality test interrupted by user")
+        success = False
+    finally:
+        client.close()
+
+    return success
+
+
+def main_cli():
+    """Standalone CLI entry point."""
+    import argparse
+    parser = argparse.ArgumentParser(description="Public.com RTH Data-Quality Validation")
+    parser.add_argument("--symbols", default="AAPL,NVDA,MSFT,TSLA,SPY")
+    parser.add_argument("--interval", type=int, default=5)
+    parser.add_argument("--duration", type=int, default=300, help="300=baseline, 1800=stability")
+    parser.add_argument("--requests-per-minute", type=int, default=60)
+    parser.add_argument("--session", choices=["auto", "premarket", "regular", "afterhours"], default="auto")
+    parser.add_argument("--max-age", type=float, default=60)
+    parser.add_argument("--clock-skew-tolerance", type=float, default=0)
+    parser.add_argument("--bars-trading-session-toggle", choices=["REGULAR_HOURS", "REGULAR_AND_EXTENDED_HOURS", "ALL_SESSIONS"], default="REGULAR_AND_EXTENDED_HOURS")
+    args = parser.parse_args()
+    symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+    success = test_rth_quality(
+        symbols=symbols,
+        interval_seconds=args.interval,
+        duration_seconds=args.duration,
+        requests_per_minute=args.requests_per_minute,
+        session=args.session,
+        max_age=args.max_age,
+        clock_skew_tolerance=args.clock_skew_tolerance,
+        bars_trading_session_toggle=args.bars_trading_session_toggle,
+    )
+    sys.exit(0 if success else 1)
+
+
+if __name__ == "__main__":
+    main_cli()

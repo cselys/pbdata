@@ -1,0 +1,6 @@
+requests>=2.31.0
+python-dotenv>=1.0.0
+aiohttp>=3.9.0
+tqdm>=4.66.0
+pandas-market-calendars>=5.0,<6
+tzdata>=2025.1
