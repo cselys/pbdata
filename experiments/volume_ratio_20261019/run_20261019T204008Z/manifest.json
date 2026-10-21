@@ -1,0 +1,99 @@
+{
+  "run_id": "20261019T204008Z",
+  "started_at_utc": "2026-10-19T20:40:08.261760+00:00",
+  "symbols": [
+    "SPY",
+    "QQQ",
+    "NVDA"
+  ],
+  "trading_session_toggle": "REGULAR_AND_EXTENDED_HOURS",
+  "requests_per_minute": 20,
+  "planned_market_requests": 5,
+  "note": "Public.com volume-ratio experiment; read-only; no orders",
+  "requests": [
+    {
+      "index": 1,
+      "kind": "quotes_batch",
+      "symbols": [
+        "SPY",
+        "QQQ",
+        "NVDA"
+      ],
+      "category": "success",
+      "http_status": 200
+    },
+    {
+      "index": 2,
+      "kind": "bars_1min",
+      "symbol": "SPY",
+      "category": "missing_price",
+      "http_status": 200
+    },
+    {
+      "index": 3,
+      "kind": "bars_1min",
+      "symbol": "QQQ",
+      "category": "missing_price",
+      "http_status": 200
+    },
+    {
+      "index": 4,
+      "kind": "bars_1min",
+      "symbol": "NVDA",
+      "category": "missing_price",
+      "http_status": 200
+    }
+  ],
+  "raw_files": [
+    {
+      "file": "quotes_1.json",
+      "bytes": 5322,
+      "sha256": "9a7f546bf9bb2b318a9176be7c4bc74d6e278e65599e34ec0d5868aad4d06fa9"
+    },
+    {
+      "file": "bars_1min.json",
+      "bytes": 762014,
+      "sha256": "80490fd36bf069f36b5905bf1afdb0ca2b6f32eba9bc5f740d488c70a9ed0c01"
+    }
+  ],
+  "setup": [
+    {
+      "symbol": null,
+      "stage": "authentication",
+      "method": "POST",
+      "endpoint_url": "https://api.public.com/userapiauthservice/personal/access-tokens",
+      "http_status": 200,
+      "request_duration_ms": 169.21529998944607,
+      "category": "success",
+      "api_error_code": null,
+      "response_received_at_utc": "2026-10-19T20:40:08.430053+00:00",
+      "api_error_message": null,
+      "price": null,
+      "provider_timestamp": null,
+      "raw_response": "[authentication response omitted]",
+      "response_headers": {
+        "Content-Type": "application/json"
+      }
+    },
+    {
+      "symbol": null,
+      "stage": "accounts",
+      "method": "GET",
+      "endpoint_url": "https://api.public.com/userapigateway/trading/account",
+      "http_status": 200,
+      "request_duration_ms": 57.28829999861773,
+      "category": "success",
+      "api_error_code": null,
+      "response_received_at_utc": "2026-10-19T20:40:11.316822+00:00",
+      "api_error_message": null,
+      "price": null,
+      "provider_timestamp": null,
+      "raw_response": "[account details omitted]",
+      "response_headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ],
+  "status": "BARS_FAILED",
+  "finished_at_utc": "2026-10-19T20:40:23.751206+00:00"
+}

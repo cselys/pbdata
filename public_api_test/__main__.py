@@ -22,7 +22,7 @@ def main():
         choices=[
             "auth", "quotes", "freshness", "rate_limits", "batch",
             "historical", "streaming", "session_bars", "diagnostic",
-            "rth_quality", "batch_stability", "multi_batch_stability", "all"
+            "rth_quality", "batch_stability", "multi_batch_stability", "quote_diagnostics", "all"
         ],
         default="all",
         help="Which test phase to run (default: all)",
@@ -99,6 +99,11 @@ def main():
         default=20,
         help="Maximum symbols per batch in multi_batch_stability phase (default: 20)",
     )
+    parser.add_argument(
+        "--quote-symbols",
+        type=str,
+        help="Comma-separated list of symbols for quote_diagnostics phase",
+    )
     
     args = parser.parse_args()
     
@@ -122,6 +127,33 @@ def main():
     print()
     
     if args.phase == "multi_batch_stability":
+        from public_api_test.multi_batch_stability import run_multi_batch_stability
+        from public_api_test.multi_batch_stability import validate_symbols as validate_multi_symbols
+        try:
+            validate_multi_symbols(symbols)
+        except ValueError as error:
+            parser.error(str(error))
+        sys.exit(0 if run_multi_batch_stability(
+            symbols=symbols,
+            interval_seconds=args.interval,
+            duration_seconds=args.duration,
+            requests_per_minute=args.requests_per_minute,
+            max_age=args.max_age,
+            clock_skew_tolerance=args.clock_skew_tolerance,
+            max_symbols_per_batch=args.max_symbols_per_batch
+        ) else 1)
+
+    if args.phase == "quote_diagnostics":
+        from public_api_test.quote_diagnostics import run_quote_diagnostics
+        sys.exit(0 if run_quote_diagnostics(
+            symbols=symbols,
+            interval_seconds=args.interval,
+            duration_seconds=args.duration,
+            requests_per_minute=args.requests_per_minute,
+            max_age=args.max_age,
+            clock_skew_tolerance=args.clock_skew_tolerance,
+            max_symbols_per_batch=args.max_symbols_per_batch
+        ) else 1)
         from public_api_test.multi_batch_stability import run_multi_batch_stability
         from public_api_test.multi_batch_stability import validate_symbols as validate_multi_symbols
         try:

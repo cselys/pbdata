@@ -1,0 +1,197 @@
+{
+  "api_error_code": null,
+  "api_error_message": null,
+  "batch_size": 3,
+  "category": "success",
+  "completeness_ratio": 1.0,
+  "http_latency_ms": 52.04540000704583,
+  "http_status": 200,
+  "instrument_results": [
+    {
+      "api_error_code": null,
+      "api_error_message": null,
+      "category": "success",
+      "outcome": "SUCCESS",
+      "price": 767.0045,
+      "provider_timestamp_raw": "2026-10-19T20:40:11Z",
+      "symbol": "SPY"
+    },
+    {
+      "api_error_code": null,
+      "api_error_message": null,
+      "category": "success",
+      "outcome": "SUCCESS",
+      "price": 718.93,
+      "provider_timestamp_raw": "2026-10-19T20:40:08Z",
+      "symbol": "QQQ"
+    },
+    {
+      "api_error_code": null,
+      "api_error_message": null,
+      "category": "success",
+      "outcome": "SUCCESS",
+      "price": 217.17,
+      "provider_timestamp_raw": "2026-10-19T20:40:10Z",
+      "symbol": "NVDA"
+    }
+  ],
+  "missing_symbols": [],
+  "partial_failures": 0,
+  "quote_request_count": 1,
+  "results": [
+    {
+      "api_error_code": null,
+      "api_error_message": null,
+      "category": "success",
+      "duplicate_symbols": [],
+      "endpoint_url": "https://api.public.com/userapigateway/marketdata/[REDACTED]/quotes",
+      "http_latency_ms": 52.04540000704583,
+      "http_status": 200,
+      "instrument_results": [
+        {
+          "api_error_code": null,
+          "api_error_message": null,
+          "category": "success",
+          "outcome": "SUCCESS",
+          "price": 767.0045,
+          "provider_timestamp_raw": "2026-10-19T20:40:11Z",
+          "symbol": "SPY"
+        },
+        {
+          "api_error_code": null,
+          "api_error_message": null,
+          "category": "success",
+          "outcome": "SUCCESS",
+          "price": 718.93,
+          "provider_timestamp_raw": "2026-10-19T20:40:08Z",
+          "symbol": "QQQ"
+        },
+        {
+          "api_error_code": null,
+          "api_error_message": null,
+          "category": "success",
+          "outcome": "SUCCESS",
+          "price": 217.17,
+          "provider_timestamp_raw": "2026-10-19T20:40:10Z",
+          "symbol": "NVDA"
+        }
+      ],
+      "method": "POST",
+      "missing_symbols": [],
+      "price": null,
+      "provider_timestamp": null,
+      "raw_response": {
+        "quotes": [
+          {
+            "ask": "767.04",
+            "askSize": 846,
+            "askTimestamp": "2026-10-19T20:25:13Z",
+            "bid": "767.00",
+            "bidSize": 1,
+            "bidTimestamp": "2026-10-19T20:25:13Z",
+            "bondDetails": null,
+            "instrument": {
+              "symbol": "SPY",
+              "type": "EQUITY"
+            },
+            "last": "767.0045",
+            "lastTimestamp": "2026-10-19T20:40:11Z",
+            "oneDayChange": {
+              "change": "3.23",
+              "percentChange": "0.42"
+            },
+            "openInterest": null,
+            "optionDetails": null,
+            "outcome": "SUCCESS",
+            "previousClose": "763.25",
+            "volume": 38274961
+          },
+          {
+            "ask": "718.9299",
+            "askSize": 920,
+            "askTimestamp": "2026-10-19T20:25:14Z",
+            "bid": "718.89",
+            "bidSize": 147,
+            "bidTimestamp": "2026-10-19T20:25:14Z",
+            "bondDetails": null,
+            "instrument": {
+              "symbol": "QQQ",
+              "type": "EQUITY"
+            },
+            "last": "718.93",
+            "lastTimestamp": "2026-10-19T20:40:08Z",
+            "oneDayChange": {
+              "change": "8.56",
+              "percentChange": "1.21"
+            },
+            "openInterest": null,
+            "optionDetails": null,
+            "outcome": "SUCCESS",
+            "previousClose": "709.8",
+            "volume": 36711457
+          },
+          {
+            "ask": "217.25",
+            "askSize": 45,
+            "askTimestamp": "2026-10-19T20:25:13Z",
+            "bid": "217.17",
+            "bidSize": 2,
+            "bidTimestamp": "2026-10-19T20:25:13Z",
+            "bondDetails": null,
+            "instrument": {
+              "symbol": "NVDA",
+              "type": "EQUITY"
+            },
+            "last": "217.17",
+            "lastTimestamp": "2026-10-19T20:40:10Z",
+            "oneDayChange": {
+              "change": "2.96",
+              "percentChange": "1.38"
+            },
+            "openInterest": null,
+            "optionDetails": null,
+            "outcome": "SUCCESS",
+            "previousClose": "214.13",
+            "volume": 96899282
+          }
+        ]
+      },
+      "request_duration_ms": 52.04540000704583,
+      "response_headers": {
+        "Content-Type": "application/json"
+      },
+      "response_received_at_utc": "2026-10-19T20:40:14.306641+00:00",
+      "returned_symbol_list": [
+        "SPY",
+        "QQQ",
+        "NVDA"
+      ],
+      "stage": "batch_quotes",
+      "symbol": null,
+      "symbols_requested": [
+        "SPY",
+        "QQQ",
+        "NVDA"
+      ],
+      "unexpected_quotes": [],
+      "valid_symbols": [
+        "SPY",
+        "QQQ",
+        "NVDA"
+      ]
+    }
+  ],
+  "returned_symbol_list": [
+    "SPY",
+    "QQQ",
+    "NVDA"
+  ],
+  "returned_symbols": 3,
+  "setup": [],
+  "symbols_requested": [
+    "SPY",
+    "QQQ",
+    "NVDA"
+  ],
+  "valid_price_count": 3
+}

@@ -1,0 +1,491 @@
+{
+  "cross_provider": {
+    "NVDA": {
+      "mean_abs_relative_diff": 0.000638,
+      "median_abs_relative_diff": 0.0,
+      "overlapping_minutes": 391,
+      "public_regular_bars": 391,
+      "public_sum_common": 70505232.770799,
+      "sample_minutes": [
+        {
+          "minute_utc": "2026-10-19T13:30:00+00:00",
+          "public": 1847690.671603,
+          "schwab": 1804667.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:31:00+00:00",
+          "public": 445514.166882,
+          "schwab": 445514.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:32:00+00:00",
+          "public": 571048.042898,
+          "schwab": 571048.0
+        }
+      ],
+      "schwab_bars_for_day": 580,
+      "schwab_sum_common": 73752601.0,
+      "spearman": 0.999999
+    },
+    "QQQ": {
+      "mean_abs_relative_diff": 0.000146,
+      "median_abs_relative_diff": 0.0,
+      "overlapping_minutes": 391,
+      "public_regular_bars": 391,
+      "public_sum_common": 24131159.185113,
+      "sample_minutes": [
+        {
+          "minute_utc": "2026-10-19T13:30:00+00:00",
+          "public": 702060.320247,
+          "schwab": 696763.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:31:00+00:00",
+          "public": 282580.0,
+          "schwab": 282580.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:32:00+00:00",
+          "public": 186782.287056,
+          "schwab": 186782.0
+        }
+      ],
+      "schwab_bars_for_day": 580,
+      "schwab_sum_common": 24145468.0,
+      "spearman": 1.0
+    },
+    "SPY": {
+      "mean_abs_relative_diff": 0.000379,
+      "median_abs_relative_diff": 0.0,
+      "overlapping_minutes": 391,
+      "public_regular_bars": 391,
+      "public_sum_common": 26787002.554035,
+      "sample_minutes": [
+        {
+          "minute_utc": "2026-10-19T13:30:00+00:00",
+          "public": 553751.95498,
+          "schwab": 551862.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:31:00+00:00",
+          "public": 107130.0,
+          "schwab": 107130.0
+        },
+        {
+          "minute_utc": "2026-10-19T13:32:00+00:00",
+          "public": 137044.0,
+          "schwab": 137044.0
+        }
+      ],
+      "schwab_bars_for_day": 576,
+      "schwab_sum_common": 26848015.0,
+      "spearman": 0.999996
+    }
+  },
+  "quote_snapshot": {
+    "NVDA": {
+      "last": "217.17",
+      "lastTimestamp": "2026-10-19T20:40:10Z",
+      "volume": 96899282
+    },
+    "QQQ": {
+      "last": "718.93",
+      "lastTimestamp": "2026-10-19T20:40:08Z",
+      "volume": 36711457
+    },
+    "SPY": {
+      "last": "767.0045",
+      "lastTimestamp": "2026-10-19T20:40:11Z",
+      "volume": 38274961
+    }
+  },
+  "ratio_examples": {
+    "NVDA": {
+      "09:30": {
+        "diff": 0.001429,
+        "flag": "OK",
+        "public_denominator": 2086054.671603,
+        "public_numerator": 1944510.671603,
+        "public_ratio": 0.932148,
+        "schwab_ratio": 0.930719
+      },
+      "09:35": {
+        "diff": -0.005367,
+        "flag": "OK",
+        "public_denominator": 4348458.622923,
+        "public_numerator": 2335703.95132,
+        "public_ratio": 0.537134,
+        "schwab_ratio": 0.542501
+      },
+      "10:00": {
+        "diff": 0.0,
+        "flag": "OK",
+        "public_denominator": 3244202.502528,
+        "public_numerator": 972347.985061,
+        "public_ratio": 0.299719,
+        "schwab_ratio": 0.299719
+      },
+      "12:00": {
+        "diff": -0.000133,
+        "flag": "OK",
+        "public_denominator": 2595637.074651,
+        "public_numerator": 809910.02062,
+        "public_ratio": 0.312027,
+        "schwab_ratio": 0.31216
+      }
+    },
+    "QQQ": {
+      "09:30": {
+        "diff": 0.000579,
+        "flag": "OK",
+        "public_denominator": 880076.320247,
+        "public_numerator": 795965.320247,
+        "public_ratio": 0.904428,
+        "schwab_ratio": 0.903849
+      },
+      "09:35": {
+        "diff": -0.001518,
+        "flag": "OK",
+        "public_denominator": 1909162.020264,
+        "public_numerator": 1042315.700017,
+        "public_ratio": 0.545955,
+        "schwab_ratio": 0.547473
+      },
+      "10:00": {
+        "diff": 0.0,
+        "flag": "OK",
+        "public_denominator": 1315763.18203,
+        "public_numerator": 370525.67192,
+        "public_ratio": 0.281605,
+        "schwab_ratio": 0.281605
+      },
+      "12:00": {
+        "diff": 0.000307,
+        "flag": "OK",
+        "public_denominator": 601360.3696,
+        "public_numerator": 233191.397771,
+        "public_ratio": 0.387773,
+        "schwab_ratio": 0.387466
+      }
+    },
+    "SPY": {
+      "09:30": {
+        "diff": 0.000497,
+        "flag": "OK",
+        "public_denominator": 751458.95498,
+        "public_numerator": 603364.95498,
+        "public_ratio": 0.802925,
+        "schwab_ratio": 0.802428
+      },
+      "09:35": {
+        "diff": -0.000716,
+        "flag": "OK",
+        "public_denominator": 1211862.18207,
+        "public_numerator": 556007.22709,
+        "public_ratio": 0.458804,
+        "schwab_ratio": 0.45952
+      },
+      "10:00": {
+        "diff": -1e-06,
+        "flag": "OK",
+        "public_denominator": 1001086.967434,
+        "public_numerator": 282272.67078,
+        "public_ratio": 0.281966,
+        "schwab_ratio": 0.281967
+      },
+      "12:00": {
+        "diff": 0.0,
+        "flag": "OK",
+        "public_denominator": 798574.0,
+        "public_numerator": 309438.0,
+        "public_ratio": 0.387488,
+        "schwab_ratio": 0.387488
+      }
+    }
+  },
+  "run_id": "20261019T204008Z",
+  "symbols": {
+    "NVDA": {
+      "all_vs_quote_ratio": 0.750612,
+      "bucket_counts": {
+        "afterMarket": 41,
+        "preMarket": 330,
+        "regularMarket": 391
+      },
+      "interval_stats": {
+        "afterMarket": {
+          "bars": 41,
+          "consecutive_decreases": 20,
+          "consecutive_flat": 1,
+          "consecutive_increases": 19,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 34879.0,
+          "min_volume": 120.0,
+          "non_monotonic": true,
+          "sum_volume": 184112.0
+        },
+        "preMarket": {
+          "bars": 330,
+          "consecutive_decreases": 164,
+          "consecutive_flat": 0,
+          "consecutive_increases": 165,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 76785.0,
+          "min_volume": 0.0,
+          "non_monotonic": true,
+          "sum_volume": 2044462.0
+        },
+        "regularMarket": {
+          "bars": 391,
+          "consecutive_decreases": 199,
+          "consecutive_flat": 0,
+          "consecutive_increases": 191,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 12780750.0,
+          "min_volume": 27357.0,
+          "non_monotonic": true,
+          "sum_volume": 70505232.770799
+        }
+      },
+      "quote_volume": 96899282,
+      "regular_vs_quote_ratio": 0.727614,
+      "status": "OK",
+      "sum_all_buckets": 72733806.770799,
+      "sum_premarket": 2044462.0,
+      "sum_regular": 70505232.770799,
+      "time_alignment": {
+        "afterMarket": {
+          "first_et": "2026-10-19T16:01:00-04:00",
+          "last_et": "2026-10-19T16:40:23-04:00",
+          "spacing": {
+            "exactly_60s": false,
+            "intervals_seconds": [
+              23.0,
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "preMarket": {
+          "first_et": "2026-10-19T04:00:00-04:00",
+          "last_et": "2026-10-19T09:29:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "regularMarket": {
+          "first_et": "2026-10-19T09:30:00-04:00",
+          "last_et": "2026-10-19T16:00:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        }
+      }
+    },
+    "QQQ": {
+      "all_vs_quote_ratio": 0.71322,
+      "bucket_counts": {
+        "afterMarket": 41,
+        "preMarket": 330,
+        "regularMarket": 391
+      },
+      "interval_stats": {
+        "afterMarket": {
+          "bars": 41,
+          "consecutive_decreases": 23,
+          "consecutive_flat": 1,
+          "consecutive_increases": 16,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 37024.0,
+          "min_volume": 55.0,
+          "non_monotonic": true,
+          "sum_volume": 277371.0
+        },
+        "preMarket": {
+          "bars": 330,
+          "consecutive_decreases": 153,
+          "consecutive_flat": 0,
+          "consecutive_increases": 176,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 102798.0,
+          "min_volume": 0.0,
+          "non_monotonic": true,
+          "sum_volume": 1774830.0
+        },
+        "regularMarket": {
+          "bars": 391,
+          "consecutive_decreases": 198,
+          "consecutive_flat": 0,
+          "consecutive_increases": 192,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 1085601.0,
+          "min_volume": 7851.0,
+          "non_monotonic": true,
+          "sum_volume": 24131159.185113
+        }
+      },
+      "quote_volume": 36711457,
+      "regular_vs_quote_ratio": 0.65732,
+      "status": "OK",
+      "sum_all_buckets": 26183360.185113,
+      "sum_premarket": 1774830.0,
+      "sum_regular": 24131159.185113,
+      "time_alignment": {
+        "afterMarket": {
+          "first_et": "2026-10-19T16:01:00-04:00",
+          "last_et": "2026-10-19T16:40:20-04:00",
+          "spacing": {
+            "exactly_60s": false,
+            "intervals_seconds": [
+              20.0,
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "preMarket": {
+          "first_et": "2026-10-19T04:00:00-04:00",
+          "last_et": "2026-10-19T09:29:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "regularMarket": {
+          "first_et": "2026-10-19T09:30:00-04:00",
+          "last_et": "2026-10-19T16:00:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        }
+      }
+    },
+    "SPY": {
+      "all_vs_quote_ratio": 0.758201,
+      "bucket_counts": {
+        "afterMarket": 41,
+        "preMarket": 330,
+        "regularMarket": 391
+      },
+      "interval_stats": {
+        "afterMarket": {
+          "bars": 41,
+          "consecutive_decreases": 20,
+          "consecutive_flat": 1,
+          "consecutive_increases": 19,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 811570.0,
+          "min_volume": 0.0,
+          "non_monotonic": true,
+          "sum_volume": 1215344.0
+        },
+        "preMarket": {
+          "bars": 330,
+          "consecutive_decreases": 151,
+          "consecutive_flat": 0,
+          "consecutive_increases": 178,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 36733.0,
+          "min_volume": 0.0,
+          "non_monotonic": true,
+          "sum_volume": 1017751.0
+        },
+        "regularMarket": {
+          "bars": 391,
+          "consecutive_decreases": 206,
+          "consecutive_flat": 0,
+          "consecutive_increases": 184,
+          "cumulative_like": false,
+          "last_equals_sum": false,
+          "max_volume": 1559051.0,
+          "min_volume": 8401.0,
+          "non_monotonic": true,
+          "sum_volume": 26787002.554035
+        }
+      },
+      "quote_volume": 38274961,
+      "regular_vs_quote_ratio": 0.699857,
+      "status": "OK",
+      "sum_all_buckets": 29020097.554035,
+      "sum_premarket": 1017751.0,
+      "sum_regular": 26787002.554035,
+      "time_alignment": {
+        "afterMarket": {
+          "first_et": "2026-10-19T16:01:00-04:00",
+          "last_et": "2026-10-19T16:40:17-04:00",
+          "spacing": {
+            "exactly_60s": false,
+            "intervals_seconds": [
+              17.0,
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "preMarket": {
+          "first_et": "2026-10-19T04:00:00-04:00",
+          "last_et": "2026-10-19T09:29:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        },
+        "regularMarket": {
+          "first_et": "2026-10-19T09:30:00-04:00",
+          "last_et": "2026-10-19T16:00:00-04:00",
+          "spacing": {
+            "exactly_60s": true,
+            "intervals_seconds": [
+              60.0
+            ]
+          },
+          "timezone_offsets": [
+            "-04:00"
+          ]
+        }
+      }
+    }
+  }
+}
