@@ -13,6 +13,13 @@ from public_api_test.models import BatchQuoteResult
 from public_api_test.sessions import annotate_quote
 
 
+def _safe_float(value):
+    try:
+        return float(value) if value is not None else None
+    except (TypeError, ValueError):
+        return None
+
+
 class PublicComClient:
     def __init__(self, api_key=None, base_url=config.API_BASE_URL, account_id=None,
                  requests_per_minute=60, validity_in_minutes=60, token_source="auto"):
@@ -287,7 +294,12 @@ class PublicComClient:
                                 instrument_result.update(outcome=item.get("outcome"),
                                     category="instrument_error", api_error_code=item.get("code", item.get("errorCode", item.get("outcome"))),
                                     api_error_message=item.get("message", item.get("errorMessage", item.get("error"))),
-                                    provider_timestamp_raw=item.get("lastTimestamp"))
+                                    provider_timestamp_raw=item.get("lastTimestamp"),
+                                    bid_timestamp_raw=item.get("bidTimestamp"),
+                                    ask_timestamp_raw=item.get("askTimestamp"),
+                                    bid_price=_safe_float(item.get("bid")),
+                                    ask_price=_safe_float(item.get("ask")),
+                                    volume=_safe_float(item.get("volume")))
                                 if item.get("outcome") == "SUCCESS":
                                     instrument_result.update(category="missing_price", api_error_code=None,
                                         api_error_message="No finite positive last price.")

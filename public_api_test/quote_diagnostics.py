@@ -332,12 +332,14 @@ def run_quote_diagnostics(
                     raw_response = instr.get("raw_response", {})
 
                     last_price = _safe_float(instr.get("price"))
-                    bid_price = _safe_float(raw_response.get("bid"))
-                    ask_price = _safe_float(raw_response.get("ask"))
+                    bid_price = _safe_float(instr.get("bid_price")) or _safe_float(raw_response.get("bid"))
+                    ask_price = _safe_float(instr.get("ask_price")) or _safe_float(raw_response.get("ask"))
 
-                    last_ts_raw = raw_response.get("lastTimestamp") or raw_response.get("last_timestamp")
-                    bid_ts_raw = raw_response.get("bidTimestamp")
-                    ask_ts_raw = raw_response.get("askTimestamp")
+                    last_ts_raw = instr.get("provider_timestamp_raw") or instr.get("lastTimestamp") or instr.get("last_timestamp") or raw_response.get("lastTimestamp") or raw_response.get("last_timestamp")
+                    bid_ts_raw = instr.get("bid_timestamp_raw") or instr.get("bidTimestamp") or instr.get("bid_timestamp") or raw_response.get("bidTimestamp")
+                    ask_ts_raw = instr.get("ask_timestamp_raw") or instr.get("askTimestamp") or instr.get("ask_timestamp") or raw_response.get("askTimestamp")
+
+                    volume = _safe_float(instr.get("volume")) or _safe_float(raw_response.get("volume"))
 
                     last_age = _parse_ts(last_ts_raw) if last_ts_raw else None
                     bid_age = _parse_ts(bid_ts_raw) if bid_ts_raw else None
@@ -352,19 +354,21 @@ def run_quote_diagnostics(
                     bid_age_sec = received_dt.timestamp() - bid_age if bid_age is not None else None
                     ask_age_sec = received_dt.timestamp() - ask_age if ask_age is not None else None
 
-                    # Status classification
-                    def _status(age):
-                        if age is None:
+                    # Status classification: distinguish missing vs invalid
+                    def _ts_status(raw_val, age_sec):
+                        if raw_val is None or raw_val == "":
                             return "missing_timestamp"
-                        if age < 0:
+                        if age_sec is None:
+                            return "invalid_timestamp"
+                        if age_sec < 0:
                             return "future_timestamp"
-                        if age > max_age:
+                        if age_sec > max_age:
                             return "stale"
                         return "valid"
 
-                    last_ts_status = _status(last_age_sec)
-                    bid_ts_status = _status(bid_age_sec)
-                    ask_ts_status = _status(ask_age_sec)
+                    last_ts_status = _ts_status(last_ts_raw, last_age_sec)
+                    bid_ts_status = _ts_status(bid_ts_raw, bid_age_sec)
+                    ask_ts_status = _ts_status(ask_ts_raw, ask_age_sec)
 
                     # Volume and price change detection
                     prev = previous.get(symbol, {})
@@ -383,9 +387,10 @@ def run_quote_diagnostics(
                         and prev_last_price != last_price
                     )
                     volume_changed = (
-                        prev_volume is not None and _safe_float(raw_response.get("volume")) is not None
-                        and prev_volume != _safe_float(raw_response.get("volume"))
+                        prev_volume is not None and volume is not None
+                        and prev_volume != volume
                     )
+                    # Only count timestamp as changed when both current and previous are valid/comparable
                     last_timestamp_changed = (
                         prev_last_ts is not None and last_ts_raw is not None
                         and prev_last_ts != last_ts_raw
@@ -428,7 +433,7 @@ def run_quote_diagnostics(
                         ask_timestamp_raw=ask_ts_raw,
                         ask_age_seconds=ask_age_sec,
                         ask_timestamp_status=ask_ts_status,
-                        volume=_safe_float(raw_response.get("volume")),
+                        volume=_safe_float(instr.get("volume")) or _safe_float(raw_response.get("volume")),
                         volume_changed=volume_changed,
                         price_changed=price_changed,
                         last_timestamp_changed=last_timestamp_changed,
@@ -442,7 +447,7 @@ def run_quote_diagnostics(
                     sweep_observations.append(obs)
                     previous[symbol] = {
                         "last_price": last_price,
-                        "volume": _safe_float(raw_response.get("volume")),
+                        "volume": volume,
                         "last_timestamp_raw": last_ts_raw,
                         "bid_timestamp_raw": bid_ts_raw,
                         "ask_timestamp_raw": ask_ts_raw,
@@ -464,6 +469,12 @@ def run_quote_diagnostics(
             max_age, clock_skew_tolerance, max_symbols_per_batch,
         )
         summary_path.write_text(json.dumps(summary, indent=2), encoding="utf-8")
+
+        # Write observations to raw JSONL file
+        with raw_path.open("w", encoding="utf-8") as stream:
+            for obs in observations:
+                stream.write(json.dumps(obs.to_dict()) + "\n")
+
         print(f"Raw observations: {raw_path}\nSummary: {summary_path}")
         return summary.get("run_status") == "success"
 

@@ -22,7 +22,7 @@ def main():
         choices=[
             "auth", "quotes", "freshness", "rate_limits", "batch",
             "historical", "streaming", "session_bars", "diagnostic",
-            "rth_quality", "batch_stability", "multi_batch_stability", "quote_diagnostics", "all"
+            "rth_quality", "batch_stability", "multi_batch_stability", "quote_diagnostics", "cross_validate", "all"
         ],
         default="all",
         help="Which test phase to run (default: all)",
@@ -104,6 +104,17 @@ def main():
         type=str,
         help="Comma-separated list of symbols for quote_diagnostics phase",
     )
+    parser.add_argument(
+        "--cross-validate-symbols",
+        type=str,
+        help="Comma-separated list of symbols for cross_validate phase (overrides --symbols)",
+    )
+    parser.add_argument(
+        "--matching-tolerance",
+        type=float,
+        default=1.0,
+        help="Matching tolerance in seconds for cross-provider observation alignment (default: 1.0)",
+    )
     
     args = parser.parse_args()
     
@@ -111,6 +122,8 @@ def main():
     if args.symbols_file:
         with open(args.symbols_file, 'r') as f:
             symbols = [line.strip().upper() for line in f if line.strip()]
+    elif args.phase == "cross_validate" and args.cross_validate_symbols:
+        symbols = [s.strip().upper() for s in args.cross_validate_symbols.split(",") if s.strip()]
     else:
         symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
     
@@ -154,21 +167,56 @@ def main():
             clock_skew_tolerance=args.clock_skew_tolerance,
             max_symbols_per_batch=args.max_symbols_per_batch
         ) else 1)
-        from public_api_test.multi_batch_stability import run_multi_batch_stability
-        from public_api_test.multi_batch_stability import validate_symbols as validate_multi_symbols
+
+    if args.phase == "cross_validate":
+        from public_api_test.cross_validation.collector import CrossValidationCollector
+        import json
+
+        public_adapter = None
+        schwab_adapter = None
+        webull_adapter = None
+
+        # Public.com adapter (always available)
+        from public_api_test.client import PublicComClient
+        from public_api_test.cross_validation.adapters import PublicComAdapter
+        public_client = PublicComClient(requests_per_minute=args.requests_per_minute)
+        public_adapter = PublicComAdapter(public_client)
+
+        # Schwab adapter (optional, requires realtimesignals project on path)
         try:
-            validate_multi_symbols(symbols)
-        except ValueError as error:
-            parser.error(str(error))
-        sys.exit(0 if run_multi_batch_stability(
+            _real_timesignals = "C:/Git/AI/claude/realtimesignals"
+            if _real_timesignals not in sys.path:
+                sys.path.insert(0, _real_timesignals)
+            from schwab_stock_provider import SchwabStockProvider
+            from public_api_test.cross_validation.adapters import SchwabAdapter
+            schwab_provider = SchwabStockProvider()
+            schwab_adapter = SchwabAdapter(schwab_provider)
+        except Exception:
+            schwab_adapter = None
+
+        # Webull adapter (optional, requires webullrealcheck project on path)
+        try:
+            _webull = "C:/Git/AI/claude/webullrealcheck"
+            if _webull not in sys.path:
+                sys.path.insert(0, _webull)
+            from app.data.webull_client import WebullClient
+            from public_api_test.cross_validation.adapters import WebullAdapter
+            webull_client = WebullClient()
+            webull_adapter = WebullAdapter(webull_client)
+        except Exception:
+            webull_adapter = None
+
+        collector = CrossValidationCollector(
             symbols=symbols,
             interval_seconds=args.interval,
             duration_seconds=args.duration,
-            requests_per_minute=args.requests_per_minute,
-            max_age=args.max_age,
-            clock_skew_tolerance=args.clock_skew_tolerance,
-            max_symbols_per_batch=args.max_symbols_per_batch
-        ) else 1)
+            public_adapter=public_adapter,
+            schwab_adapter=schwab_adapter,
+            webull_adapter=webull_adapter,
+        )
+        summary = collector.run()
+        print(json.dumps(summary, indent=2))
+        sys.exit(0 if summary["total_observations"] > 0 else 1)
 
     if args.phase == "batch_stability":
         from public_api_test.batch_stability import run_batch_stability, validate_symbols as validate_batch_symbols
